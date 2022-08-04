@@ -84,7 +84,8 @@ jobs:
     - name: Disk Cleanup
       run: |
         df -h
-        docker rmi `docker images -q -a`
+        docker container prune -f
+        docker image prune -a -f
         # 3.9GB
         sudo rm -rf /usr/local/share/boost
         # 17GB

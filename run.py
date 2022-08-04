@@ -15,6 +15,7 @@ from typing import Optional, Dict, List
 
 logging.basicConfig(level=logging.INFO)
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class ChangeDirectory(object):
     def __init__(self, cwd):
@@ -214,7 +215,9 @@ def get_webrtc(source_dir, patch_dir, version, target,
 
     if not os.path.exists(os.path.join(webrtc_source_dir, 'src')):
         with cd(webrtc_source_dir):
-            cmd(['git', 'clone', 'git@github.com:webrtc-sdk/webrtc.git', '.'])
+            cmd (['gclient'])
+            shutil.copyfile(os.path.join(BASE_DIR, '.gclient'), '.gclient')
+            cmd(['git', 'clone', 'https://github.com/webrtc-sdk/webrtc.git', 'src'])
             if target == 'android':
                 with open('.gclient', 'a') as f:
                     f.write("target_os = [ 'android' ]\n")
@@ -835,7 +838,6 @@ def package_webrtc(source_dir, build_dir, package_dir, target,
                     f.add(name=file, arcname=file)
 
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 TARGETS = [
     'windows_x86_64',
     'windows_arm64',
