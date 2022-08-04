@@ -214,8 +214,7 @@ def get_webrtc(source_dir, patch_dir, version, target,
 
     if not os.path.exists(os.path.join(webrtc_source_dir, 'src')):
         with cd(webrtc_source_dir):
-            cmd(['gclient'])
-            cmd(['fetch', 'webrtc'])
+            cmd(['git', 'clone', 'git@github.com:webrtc-sdk/webrtc.git', '.'])
             if target == 'android':
                 with open('.gclient', 'a') as f:
                     f.write("target_os = [ 'android' ]\n")
@@ -229,15 +228,13 @@ def get_webrtc(source_dir, patch_dir, version, target,
         with cd(src_dir):
             cmd(['git', 'fetch'])
             if version == 'HEAD':
+                # Update origin/HEAD (default branch may have changed)
+                cmd(['git', 'remote', 'set-head', 'origin', '-a'])
                 cmd(['git', 'checkout', '-f', 'origin/HEAD'])
             else:
                 cmd(['git', 'checkout', '-f', version])
             cmd(['git', 'clean', '-df'])
             cmd(['gclient', 'sync', '-D', '--force', '--reset', '--with_branch_heads'])
-            for patch in PATCHES[target]:
-                depth, dirs = PATCH_INFO.get(patch, (1, ['.']))
-                dir = os.path.join(src_dir, *dirs)
-                apply_patch(os.path.join(patch_dir, patch), dir, depth)
 
 
 def git_get_url_and_revision(dir):
