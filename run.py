@@ -48,10 +48,11 @@ def cmd(args, **kwargs):
         args = [shutil.which(args[0]), *args[1:]]
     return subprocess.run(args, **kwargs)
 
-
 # 標準出力をキャプチャするコマンド実行。シェルの `cmd ...` や $(cmd ...) と同じ
+# Captures standard output from a command. Works like as `cmd ...` and $(cmd ...)
 def cmdcap(args, **kwargs):
     # 3.7 でしか使えない
+    # Only usable in 3.7
     # kwargs['capture_output'] = True
     kwargs['stdout'] = subprocess.PIPE
     kwargs['stderr'] = subprocess.PIPE
@@ -116,6 +117,7 @@ def download(url: str, output_dir: Optional[str] = None, filename: Optional[str]
             cmd(["wget", "-cO", output_path, url])
     except Exception:
         # ゴミを残さないようにする
+        # clean up
         if os.path.exists(output_path):
             os.remove(output_path)
         raise
@@ -131,10 +133,12 @@ def read_version_file(path: str) -> Dict[str, str]:
         line = line.strip()
 
         # コメント行
+        # Comment line
         if line[:1] == '#':
             continue
 
         # 空行
+        # Empty line
         if len(line) == 0:
             continue
 
@@ -145,6 +149,7 @@ def read_version_file(path: str) -> Dict[str, str]:
 
 
 # dir 以下にある全てのファイルパスを、dir2 からの相対パスで返す
+# Returns all files in dir, relative to dir2.
 def enum_all_files(dir, dir2):
     for root, _, files in os.walk(dir):
         for file in files:
@@ -472,6 +477,7 @@ def get_webrtc_version_info(version_info: VersionInfo):
         maint = version_info.webrtc_build_version.split('.')[3]
     else:
         # HEAD ビルドだと正しくバージョンが取れないので、その場合は適当に空文字を入れておく
+        # If building from HEAD, we can't get accurate version info, so use with empty strings.
         branch = ''
         commit = ''
         revision = ''
@@ -501,6 +507,13 @@ def build_webrtc_ios(
     # - M94 で use_xcode_clang=true かつ --bitcode を有効にしてビルドが通り bitcode が有効になってることを確認
     # - M95 で再度 clang++: error: -gdwarf-aranges is not supported with -fembed-bitcode エラーがでるようになった
     # - https://webrtc-review.googlesource.com/c/src/+/232600 が影響している可能性があるため use_lld=false を追加
+
+    # - M92-M93 outputs: clang++: error: -gdwarf-aranges is not supported with -fembed-bitcode
+    #   set 'use_xcode_clang=false' to fix.
+    # - M94: Confirmed that build works with use-xcode_clange=true and --bitcode turned on, and bitcode is emitted.
+    # - M95: clang++: error: -gdwarf-aranges is not supported with -fembed-bitcode is back.
+    # - https://webrtc-review.googlesource.com/c/src/+/232600 may be related. use_lld=false is added.
+
     gn_args_base = [
         'rtc_libvpx_build_vp9=true',
         'enable_dsyms=true',
@@ -512,6 +525,7 @@ def build_webrtc_ios(
     ]
 
     # WebRTC.xcframework のビルド
+    # WebRTC.xcframework build
     if not nobuild_framework:
         gn_args = [
             *gn_args_base,
@@ -593,6 +607,7 @@ def build_webrtc_android(
     mkdir_p(webrtc_build_dir)
 
     # Java ファイル作成
+    # WebrtcBuildVersion.java file creation.
     branch, commit, revision, maint = get_webrtc_version_info(version_info)
     name = 'WebrtcBuildVersion'
     lines = []
@@ -613,6 +628,7 @@ def build_webrtc_android(
     ]
 
     # aar 生成
+    # build aar
     if not nobuild_aar:
         work_dir = os.path.join(webrtc_build_dir, 'aar')
         mkdir_p(work_dir)
@@ -657,6 +673,7 @@ def build_webrtc(
     mkdir_p(webrtc_build_dir)
 
     # ビルド
+    # Build
     if gen_force:
         rm_rf(webrtc_build_dir)
     if not os.path.exists(os.path.join(webrtc_build_dir, 'args.gn')) or gen:
@@ -730,10 +747,12 @@ def build_webrtc(
         ar = os.path.join(webrtc_src_dir, 'third_party/llvm-build/Release+Asserts/bin/llvm-ar')
 
     # ar で libwebrtc.a を生成する
+    # Create libwebrtc.a with ar
     if target not in ['windows_x86_64', 'windows_arm64']:
         archive_objects(ar, os.path.join(webrtc_build_dir, 'obj'), os.path.join(webrtc_build_dir, 'libwebrtc.a'))
 
     # macOS の場合は WebRTC.framework に追加情報を入れる
+    # If building macOS, add extra info
     if (target in ('macos_x86_64', 'macos_arm64')) and not nobuild_macos_framework:
         branch, commit, revision, maint = get_webrtc_version_info(version_info)
         info = {}
@@ -745,6 +764,7 @@ def build_webrtc(
             f.write(json.dumps(info, indent=4))
 
         # Info.plistの編集(tools_wertc/ios/build_ios_libs.py内の処理を踏襲)
+        # Edit Info.plist (Following the handling from: tools_wertc/ios/build_ios_libs.py)
         info_plist_path = os.path.join(webrtc_build_dir, 'WebRTC.framework', 'Resources', 'Info.plist')
         ver = cmdcap(['/usr/libexec/PlistBuddy', '-c', 'Print :CFBundleShortVersionString', info_plist_path],
                      resolve=False)
@@ -753,6 +773,7 @@ def build_webrtc(
         cmd(['plutil', '-convert', 'binary1', info_plist_path])
 
         # xcframeworkの作成
+        # Create xcframework
         rm_rf(os.path.join(webrtc_build_dir, 'WebRTC.xcframework'))
         cmd(['xcodebuild', '-create-xcframework',
             '-framework', os.path.join(webrtc_build_dir, 'WebRTC.framework'),
@@ -763,6 +784,7 @@ def build_webrtc(
 def copy_headers(webrtc_src_dir, webrtc_package_dir, target):
     if target in ['windows_x86_64', 'windows_arm64']:
         # robocopy の戻り値は特殊なので、check=False にしてうまくエラーハンドリングする
+        # robocopy's return code is special, so set `check=false` and handle it separately.
         # https://docs.microsoft.com/ja-jp/troubleshoot/windows-server/backup-and-storage/return-codes-used-robocopy-utility
         r = cmd(['robocopy', webrtc_src_dir, os.path.join(webrtc_package_dir, 'include'),
                 '*.h', '*.hpp', '/S', '/NP', '/NFL', '/NDL'], check=False)
@@ -814,6 +836,7 @@ def package_webrtc(source_dir, build_dir, package_dir, target,
     mkdir_p(webrtc_package_dir)
 
     # ライセンス生成
+    # License creation
     if target == 'android':
         dirs = []
         for arch in ANDROID_ARCHS:
@@ -841,12 +864,15 @@ def package_webrtc(source_dir, build_dir, package_dir, target,
     os.rename(os.path.join(webrtc_package_dir, 'LICENSE.md'), os.path.join(webrtc_package_dir, 'NOTICE'))
 
     # ヘッダーファイルをコピー
+    # Copy headers
     copy_headers(webrtc_src_dir, webrtc_package_dir, target)
 
     # バージョン情報
+    # Generate version info
     generate_version_info(webrtc_src_dir, webrtc_package_dir)
 
     # ライブラリ
+    # Library
     if target in ['windows_x86_64', 'windows_arm64']:
         files = [
             (['obj', 'webrtc.lib'], ['lib', 'webrtc.lib']),
@@ -863,6 +889,7 @@ def package_webrtc(source_dir, build_dir, package_dir, target,
         ]
     elif target == 'android':
         # aar を展開して classes.jar を取り出す
+        # Extract aar and grab classes.jar
         tmp = os.path.join(webrtc_build_dir, 'tmp')
         rm_rf(tmp)
         mkdir_p(tmp)
@@ -893,6 +920,7 @@ def package_webrtc(source_dir, build_dir, package_dir, target,
             shutil.copy2(os.path.join(webrtc_build_dir, *src), dstpath)
 
     # 圧縮
+    # Zip files
     with cd(package_dir):
         if target in ['windows_x86_64', 'windows_arm64']:
             with zipfile.ZipFile('webrtc.zip', 'w') as f:
@@ -940,12 +968,14 @@ def check_target(target):
             return False
 
         # x86_64 環境以外ではビルド不可
+        # Requires an x86_64 machine to build.
         arch = platform.machine()
         logging.info(f'Arch: {arch}')
         if arch not in ('AMD64', 'x86_64'):
             return False
 
         # クロスコンパイルなので Ubuntu だったら任意のバージョンでビルド可能（なはず）
+        # Cross compiling: if it's Ubuntu, any version should be able to build the following targets (theoretically)
         if target in ('ubuntu-18.04_armv8',
                       'ubuntu-20.04_armv8',
                       'raspberry-pi-os_armv6',
@@ -955,6 +985,7 @@ def check_target(target):
             return True
 
         # x86_64 用ビルドはバージョンが合っている必要がある
+        # Builds for x86_64 require the version to match.
         osver = release['VERSION_ID']
         logging.info(f'OS Version: {osver}')
         if target == 'ubuntu-18.04_x86_64' and osver == '18.04':
@@ -982,6 +1013,18 @@ def main():
             - gen 系: 既存のビルドディレクトリの上に gn gen を行う
             - gen-force 系: 既存のビルドディレクトリは完全に削除してから gn gen をやり直す
             - nobuild 系: ビルドを行わない
+
+    Memo
+
+    Build principles:
+        - If run without arguments, only build
+            - If required files are missing, it will grab them/create them, but any updates cannot be verified.
+        - When passing the following arguments, updates and creates.
+            - fetch: Updates from the related source.
+            - fetch-force: Temporarily deletes everything and refetches from source.
+            - gen: runs `gn gen` in the existing build directory.
+            - gen-force: Cleans the existing build directory and runs `gn-gen`.
+            - nobuild: don't build.
     """
     parser = argparse.ArgumentParser()
     sp = parser.add_subparsers()
@@ -1006,6 +1049,9 @@ def main():
     bp.add_argument("--webrtc-source-dir")
     # 現在 build と package を分ける意味は無いのだけど、
     # 今後複数のビルドを纏めてパッケージングする時に備えて別コマンドにしておく
+    # Currently, there's no purpose to separating build and package,
+    # but it's done in preparation for grabbing multiple builds and packaging them together.
+
     pp = sp.add_parser('package')
     pp.set_defaults(op='package')
     pp.add_argument("target", choices=TARGETS)
@@ -1047,6 +1093,7 @@ def main():
 
     if args.target in ['windows_x86_64', 'windows_arm64']:
         # Windows の WebRTC ビルドに必要な環境変数の設定
+        # Setting environment variables required for Windows WebRTC build
         mkdir_p(build_dir)
         download("https://github.com/microsoft/vswhere/releases/download/2.8.4/vswhere.exe", build_dir)
         path = cmdcap([os.path.join(build_dir, 'vswhere.exe'), '-latest',
@@ -1085,11 +1132,13 @@ def main():
                 cmd(['git', 'config', '--global', 'core.longpaths', 'true'])
 
             # ソース取得
+            # Get source
             get_webrtc(source_dir, patch_dir, version_info.webrtc_commit, args.target,
                        webrtc_source_dir=webrtc_source_dir,
                        fetch=args.webrtc_fetch, force=args.webrtc_fetch_force)
 
             # ビルド
+            # Build
             build_webrtc_args = {
                 'source_dir': source_dir,
                 'build_dir': build_dir,
@@ -1103,6 +1152,7 @@ def main():
                 'nobuild': args.webrtc_nobuild,
             }
             # iOS と Android は特殊すぎるので別枠行き
+            # iOS and Android builds are very peculiar, so they're done in a separate function.
             if args.target == 'ios':
                 build_webrtc_ios(**build_webrtc_args,
                                  nobuild_framework=args.webrtc_nobuild_ios_framework,
