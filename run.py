@@ -175,20 +175,48 @@ PATCH_INFO = {
 }
 
 PATCHES = {
-    'windows_x86_64': [],
-    'windows_arm64': [],
-    'macos_x86_64': [],
-    'macos_arm64': [],
-    'ios': [],
-    'android': [],
-    'raspberry-pi-os_armv6': [],
-    'raspberry-pi-os_armv7': [],
-    'raspberry-pi-os_armv8': [],
-    'ubuntu-18.04_armv8': [],
-    'ubuntu-20.04_armv8': [],
-    'ubuntu-18.04_x86_64': [],
-    'ubuntu-20.04_x86_64': [],
-    'ubuntu-22.04_x86_64': []
+    'windows_x86_64': [
+        'add_license_dav1d.patch',
+    ],
+    'windows_arm64': [
+        'add_license_dav1d.patch',
+    ],
+    'macos_x86_64': [
+        'add_license_dav1d.patch',
+    ],
+    'macos_arm64': [
+        'add_license_dav1d.patch',
+    ],
+    'ios': [
+        'add_license_dav1d.patch',
+    ],
+    'android': [
+        'add_license_dav1d.patch',
+    ],
+    'raspberry-pi-os_armv6': [
+        'add_license_dav1d.patch',
+    ],
+    'raspberry-pi-os_armv7': [
+        'add_license_dav1d.patch',
+    ],
+    'raspberry-pi-os_armv8': [
+        'add_license_dav1d.patch',
+    ],
+    'ubuntu-18.04_armv8': [
+        'add_license_dav1d.patch',
+    ],
+    'ubuntu-20.04_armv8': [
+        'add_license_dav1d.patch',
+    ],
+    'ubuntu-18.04_x86_64': [
+        'add_license_dav1d.patch',
+    ],
+    'ubuntu-20.04_x86_64': [
+        'add_license_dav1d.patch',
+    ],
+    'ubuntu-22.04_x86_64': [
+        'add_license_dav1d.patch',
+    ],
 }
 
 
@@ -238,6 +266,11 @@ def get_webrtc(source_dir, patch_dir, version, target,
                 cmd(['git', 'checkout', '-f', version])
             cmd(['git', 'clean', '-df'])
             cmd(['gclient', 'sync', '-D', '--force', '--reset', '--with_branch_heads'])
+            for patch in PATCHES[target]:
+                depth, dirs = PATCH_INFO.get(patch, (1, ['.']))
+                dir = os.path.join(src_dir, *dirs)
+                apply_patch(os.path.join(patch_dir, patch), dir, depth)
+
 
 
 def git_get_url_and_revision(dir):
