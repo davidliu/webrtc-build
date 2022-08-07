@@ -177,9 +177,15 @@ PATCH_INFO = {
 PATCHES = {
     'windows_x86_64': [
         'add_license_dav1d.patch',
+        'windows_add_deps.patch',
+        'windows_silence_warnings.patch',
+        'windows_fix_towupper.patch',
     ],
     'windows_arm64': [
         'add_license_dav1d.patch',
+        'windows_add_deps.patch',
+        'windows_silence_warnings.patch',
+        'windows_fix_towupper.patch',
     ],
     'macos_x86_64': [
         'add_license_dav1d.patch',
