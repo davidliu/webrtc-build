@@ -506,7 +506,7 @@ def build_webrtc_ios(
                 f'target_environment="{device}"',
                 "ios_enable_code_signing=false",
                 f'ios_deployment_target="{ios_deployment_target}"',
-                'enable_ios_bitcode=true',
+                'enable_ios_bitcode=false',
                 f"enable_stripping={'false' if debug else 'true'}",
                 *gn_args_base,
             ]
