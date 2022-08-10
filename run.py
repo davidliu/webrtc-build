@@ -1077,6 +1077,8 @@ def main():
             commit = version_info.webrtc_commit
             if not args.commit:
                 commit = args.commit
+            
+            print("Building for commit: ", commit)
 
             # ソース取得
             # Get source
