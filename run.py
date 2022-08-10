@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+
 class ChangeDirectory(object):
     def __init__(self, cwd):
         self._cwd = cwd
@@ -48,6 +49,7 @@ def cmd(args, **kwargs):
     if resolve:
         args = [shutil.which(args[0]), *args[1:]]
     return subprocess.run(args, **kwargs)
+
 
 # 標準出力をキャプチャするコマンド実行。シェルの `cmd ...` や $(cmd ...) と同じ
 # Captures standard output from a command. Works like as `cmd ...` and $(cmd ...)
@@ -249,7 +251,7 @@ def get_webrtc(source_dir, patch_dir, version, target,
 
     if not os.path.exists(os.path.join(webrtc_source_dir, 'src')):
         with cd(webrtc_source_dir):
-            cmd (['gclient'])
+            cmd(['gclient'])
             shutil.copyfile(os.path.join(BASE_DIR, '.gclient'), '.gclient')
             cmd(['git', 'clone', 'https://github.com/webrtc-sdk/webrtc.git', 'src'])
             if target == 'android':
@@ -276,7 +278,6 @@ def get_webrtc(source_dir, patch_dir, version, target,
                 depth, dirs = PATCH_INFO.get(patch, (1, ['.']))
                 dir = os.path.join(src_dir, *dirs)
                 apply_patch(os.path.join(patch_dir, patch), dir, depth)
-
 
 
 def git_get_url_and_revision(dir):
@@ -988,6 +989,7 @@ def main():
     bp.add_argument("--webrtc-overlap-ios-build-dir", action='store_true')
     bp.add_argument("--webrtc-build-dir")
     bp.add_argument("--webrtc-source-dir")
+    bp.add_argument("--commit")
     # 現在 build と package を分ける意味は無いのだけど、
     # 今後複数のビルドを纏めてパッケージングする時に備えて別コマンドにしておく
     # Currently, there's no purpose to separating build and package,
@@ -1072,9 +1074,13 @@ def main():
             if args.target in ['windows_x86_64', 'windows_arm64']:
                 cmd(['git', 'config', '--global', 'core.longpaths', 'true'])
 
+            commit = version_info.webrtc_commit
+            if not args.commit:
+                commit = args.commit
+
             # ソース取得
             # Get source
-            get_webrtc(source_dir, patch_dir, version_info.webrtc_commit, args.target,
+            get_webrtc(source_dir, patch_dir, commit, args.target,
                        webrtc_source_dir=webrtc_source_dir,
                        fetch=args.webrtc_fetch, force=args.webrtc_fetch_force)
 

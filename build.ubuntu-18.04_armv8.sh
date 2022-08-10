@@ -13,6 +13,7 @@ IMAGE_NAME=webrtc/$PACKAGE_NAME:m${WEBRTC_VERSION}
 DOCKER_BUILDKIT=1 docker build \
   -t $IMAGE_NAME \
   -f $PACKAGE_NAME/Dockerfile \
+  --build-arg COMMIT_HASH=$1 \
   .
 
 mkdir -p $PACKAGE_DIR
