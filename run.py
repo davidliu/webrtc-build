@@ -1075,7 +1075,7 @@ def main():
                 cmd(['git', 'config', '--global', 'core.longpaths', 'true'])
 
             commit = version_info.webrtc_commit
-            if not args.commit:
+            if args.commit:
                 commit = args.commit
             
             print("Building for commit: ", commit)
