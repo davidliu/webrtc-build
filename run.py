@@ -435,6 +435,7 @@ def build_webrtc_ios(
         source_dir, build_dir, version_info: VersionInfo, extra_gn_args,
         webrtc_source_dir=None, webrtc_build_dir=None,
         debug=False,
+        test=False,
         gen=False, gen_force=False,
         nobuild=False, nobuild_framework=False,
         overlap_build_dir=False):
@@ -522,6 +523,10 @@ def build_webrtc_ios(
             cmd(['ninja', '-C', work_dir, *get_build_targets('ios')])
             ar = '/usr/bin/ar'
             archive_objects(ar, os.path.join(work_dir, 'obj'), os.path.join(work_dir, 'libwebrtc.a'))
+        if test:
+            cmd(['autoninja', '-C', work_dir, 'rtc_unittests'])
+            run_unittests = os.path.join(work_dir, 'rtc_unittests')
+            cmd([run_unittests])
         libs.append(os.path.join(work_dir, 'libwebrtc.a'))
 
     cmd(['lipo', *libs, '-create', '-output', os.path.join(webrtc_build_dir, 'libwebrtc.a')])
@@ -538,6 +543,7 @@ def build_webrtc_android(
         source_dir, build_dir, version_info: VersionInfo, extra_gn_args,
         webrtc_source_dir=None, webrtc_build_dir=None,
         debug=False,
+        test=False,
         gen=False, gen_force=False,
         nobuild=False, nobuild_aar=False):
     if webrtc_source_dir is None:
@@ -598,12 +604,17 @@ def build_webrtc_android(
             cmd(['ninja', '-C', work_dir, *get_build_targets('android')])
             ar = os.path.join(webrtc_src_dir, 'third_party/llvm-build/Release+Asserts/bin/llvm-ar')
             archive_objects(ar, os.path.join(work_dir, 'obj'), os.path.join(work_dir, 'libwebrtc.a'))
+        if test:
+            cmd(['autoninja', '-C', work_dir, 'rtc_unittests'])
+            run_unittests = os.path.join(work_dir, 'rtc_unittests')
+            cmd([run_unittests])
 
 
 def build_webrtc(
         source_dir, build_dir, target: str, version_info: VersionInfo, extra_gn_args,
         webrtc_source_dir=None, webrtc_build_dir=None,
         debug=False,
+        test=False,
         gen=False, gen_force=False,
         nobuild=False, nobuild_macos_framework=False):
     if webrtc_source_dir is None:
@@ -990,6 +1001,7 @@ def main():
     bp.add_argument("--webrtc-build-dir")
     bp.add_argument("--webrtc-source-dir")
     bp.add_argument("--commit")
+    bp.add_argument("--test", action='store_true')
     # 現在 build と package を分ける意味は無いのだけど、
     # 今後複数のビルドを纏めてパッケージングする時に備えて別コマンドにしておく
     # Currently, there's no purpose to separating build and package,
@@ -1099,6 +1111,7 @@ def main():
                 'gen': args.webrtc_gen,
                 'gen_force': args.webrtc_gen_force,
                 'nobuild': args.webrtc_nobuild,
+                'test': args.test,
             }
             # iOS と Android は特殊すぎるので別枠行き
             # iOS and Android builds are very peculiar, so they're done in a separate function.
