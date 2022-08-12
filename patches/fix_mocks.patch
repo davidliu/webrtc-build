@@ -6,7 +6,7 @@ index 8483aa3da8..f66cdca0ba 100644
                (AudioParameters * params),
                (const, override));
  #endif  // WEBRTC_IOS
-+  MOCK_METHOD(int32_t, SetAudioDeviceSink, (AudioDeviceSink* sink), (const, override))
++  MOCK_METHOD(int32_t, SetAudioDeviceSink, (AudioDeviceSink* sink), (const, override));
  };
  }  // namespace test
  }  // namespace webrtc
