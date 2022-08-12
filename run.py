@@ -182,48 +182,62 @@ PATCHES = {
         'windows_add_deps.patch',
         'windows_silence_warnings.patch',
         'windows_fix_towupper.patch',
+        'fix_mocks.patch',
     ],
     'windows_arm64': [
         'add_license_dav1d.patch',
         'windows_add_deps.patch',
         'windows_silence_warnings.patch',
         'windows_fix_towupper.patch',
+        'fix_mocks.patch',
     ],
     'macos_x86_64': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'macos_arm64': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ios': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'android': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'raspberry-pi-os_armv6': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'raspberry-pi-os_armv7': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'raspberry-pi-os_armv8': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ubuntu-18.04_armv8': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ubuntu-20.04_armv8': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ubuntu-18.04_x86_64': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ubuntu-20.04_x86_64': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
     'ubuntu-22.04_x86_64': [
         'add_license_dav1d.patch',
+        'fix_mocks.patch',
     ],
 }
 
