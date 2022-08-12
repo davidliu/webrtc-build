@@ -1098,9 +1098,9 @@ def main():
                        webrtc_source_dir=webrtc_source_dir,
                        fetch=args.webrtc_fetch, force=args.webrtc_fetch_force)
 
-            extra_gn_args = [*args.webrtc_extra_gn_args]
+            extra_gn_args = args.webrtc_extra_gn_args
             if args.test:
-                extra_gn_args += ["rtc_include_tests=true"]
+                extra_gn_args += " rtc_include_tests=true "
 
             # ビルド
             # Build
