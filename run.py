@@ -13,7 +13,7 @@ import re
 from typing import Optional, Dict, List
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -1098,13 +1098,17 @@ def main():
                        webrtc_source_dir=webrtc_source_dir,
                        fetch=args.webrtc_fetch, force=args.webrtc_fetch_force)
 
+            extra_gn_args = [*args.webrtc_extra_gn_args]
+            if args.test:
+                extra_gn_args += ["rtc_include_tests=true"]
+
             # ビルド
             # Build
             build_webrtc_args = {
                 'source_dir': source_dir,
                 'build_dir': build_dir,
                 'version_info': version_info,
-                'extra_gn_args': args.webrtc_extra_gn_args,
+                'extra_gn_args': extra_gn_args,
                 'webrtc_source_dir': webrtc_source_dir,
                 'webrtc_build_dir': webrtc_build_dir,
                 'debug': args.debug,
