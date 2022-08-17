@@ -707,6 +707,17 @@ def build_webrtc(
         return
 
     cmd(['ninja', '-C', webrtc_build_dir, *get_build_targets(target)])
+
+    if test:
+        cmd(['autoninja', '-C', webrtc_build_dir, 'rtc_unittests'])
+        if target in ['windows_x86_64', 'windows_arm64']:
+            run_unittests_filename = 'rtc_unittests.exe'
+        else:
+            run_unittests_filename = 'rtc_unittests'
+
+        run_unittests = os.path.join(webrtc_build_dir, run_unittests_filename)
+        cmd([run_unittests])
+
     if target in ['windows_x86_64', 'windows_arm64']:
         pass
     elif target in ('macos_x86_64', 'macos_arm64'):
