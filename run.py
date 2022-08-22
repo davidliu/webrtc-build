@@ -377,7 +377,6 @@ def init_rootfs(sysroot: str, config: MultistrapConfig, force=False):
 
 
 COMMON_GN_ARGS = [
-    "rtc_include_tests=false",
     "rtc_use_h264=false",
     "is_component_build=false",
     'rtc_build_examples=false',
@@ -530,6 +529,7 @@ def build_webrtc_ios(
                 f'ios_deployment_target="{ios_deployment_target}"',
                 'enable_ios_bitcode=false',
                 f"enable_stripping={'false' if debug else 'true'}",
+                f'rtc_include_tests={"true" if test else "false"}',
                 *gn_args_base,
             ]
             gn_gen(webrtc_src_dir, work_dir, gn_args, extra_gn_args)
@@ -611,6 +611,7 @@ def build_webrtc_android(
             gn_args = [
                 *gn_args_base,
                 'target_os="android"',
+                f'rtc_include_tests={"true" if test else "false"}',
                 f'target_cpu="{ANDROID_TARGET_CPU[arch]}"',
             ]
             gn_gen(webrtc_src_dir, work_dir, gn_args, extra_gn_args)
@@ -647,6 +648,7 @@ def build_webrtc(
     if not os.path.exists(os.path.join(webrtc_build_dir, 'args.gn')) or gen:
         gn_args = [
             f"is_debug={'true' if debug else 'false'}",
+            f'rtc_include_tests={"true" if test else "false"}',
             *COMMON_GN_ARGS,
         ]
         if target in ['windows_x86_64', 'windows_arm64']:
@@ -1123,17 +1125,13 @@ def main():
                        webrtc_source_dir=webrtc_source_dir,
                        fetch=args.webrtc_fetch, force=args.webrtc_fetch_force)
 
-            extra_gn_args = args.webrtc_extra_gn_args
-            if args.test:
-                extra_gn_args += " rtc_include_tests=true "
-
             # ビルド
             # Build
             build_webrtc_args = {
                 'source_dir': source_dir,
                 'build_dir': build_dir,
                 'version_info': version_info,
-                'extra_gn_args': extra_gn_args,
+                'extra_gn_args': args.webrtc_extra_gn_args,
                 'webrtc_source_dir': webrtc_source_dir,
                 'webrtc_build_dir': webrtc_build_dir,
                 'debug': args.debug,
